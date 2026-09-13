@@ -71,7 +71,7 @@
 </div>
 
 <style>
-  body { background: #0b0f19; margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+  :global(body) { background: #0b0f19; margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
   .pod-container { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
   .nano-chassis { width: 230px; height: 440px; background: linear-gradient(135deg, #f43f5e 0%, #be123c 100%); border-radius: 44px; padding: 22px 18px; box-sizing: border-box; box-shadow: 0 35px 70px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; justify-content: space-between; border: 2px solid #fda4af; }
   .nano-screen { width: 100%; height: 210px; background: #0f172a; border-radius: 12px; border: 3px solid #334155; display: flex; flex-direction: column; align-items: center; padding: 8px; box-sizing: border-box; cursor: pointer; }

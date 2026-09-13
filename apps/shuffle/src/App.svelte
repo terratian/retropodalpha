@@ -56,11 +56,11 @@
   <div class="shuffle-face">
     <div class="status-led {isPlaying ? 'led-green' : 'led-orange'}"></div>
     <div class="control-pad">
-      <div class="pad-up" on:click={() => { volume = Math.min(1, volume + 0.1); if(audioElement) audioElement.volume = volume; playClickSound(); }}></div>
-      <div class="pad-down" on:click={() => { volume = Math.max(0, volume - 0.1); if(audioElement) audioElement.volume = volume; playClickSound(); }}></div>
-      <div class="pad-left" on:click={() => skip(-1)}></div>
-      <div class="pad-right" on:click={() => skip(1)}></div>
-      <div class="pad-center" on:click={togglePlay}></div>
+      <div class="pad-up" role="button" tabindex="0" on:click={() => { volume = Math.min(1, volume + 0.1); if(audioElement) audioElement.volume = volume; playClickSound(); }} on:keydown={(e) => e.key === 'Enter' && (volume = Math.min(1, volume + 0.1))}></div>
+      <div class="pad-down" role="button" tabindex="0" on:click={() => { volume = Math.max(0, volume - 0.1); if(audioElement) audioElement.volume = volume; playClickSound(); }} on:keydown={(e) => e.key === 'Enter' && (volume = Math.max(0, volume - 0.1))}></div>
+      <div class="pad-left" role="button" tabindex="0" on:click={() => skip(-1)} on:keydown={(e) => e.key === 'Enter' && skip(-1)}></div>
+      <div class="pad-right" role="button" tabindex="0" on:click={() => skip(1)} on:keydown={(e) => e.key === 'Enter' && skip(1)}></div>
+      <div class="pad-center" role="button" tabindex="0" on:click={togglePlay} on:keydown={(e) => e.key === 'Enter' && togglePlay()}></div>
     </div>
     <div class="shuffle-toggle-switch">
       <button class="sw-btn {!shuffleMode ? 'active' : ''}" on:click={() => shuffleMode = false}>seq</button>
@@ -71,6 +71,7 @@
 </div>
 
 <style>
+  :global(body) { margin: 0; background: #0b0f19; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; overflow: hidden; height: 100vh; display: flex; justify-content: center; align-items: center; }
   .shuffle-chassis { width: 220px; height: 320px; background: linear-gradient(135deg, #cbd5e1 0%, #64748b 100%); border-radius: 36px; padding: 20px; box-sizing: border-box; box-shadow: 0 30px 60px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; position: relative; border: 2px solid #94a3b8; }
   .clip-bracket { position: absolute; top: -15px; width: 80px; height: 20px; background: #475569; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.4); }
   .shuffle-face { width: 100%; flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: space-between; position: relative; }

@@ -99,7 +99,7 @@
           <div class="menu-title">Audio Suite</div>
           <ul>
             {#each menuItems as item, idx}
-              <li class="{idx === menuSelection ? 'selected' : ''}" role="button" tabindex="0" on:click={() => selectMenuItem(idx)} on:keydown={(e) => e.key === 'Enter' && selectMenuItem(idx)}>{item}</li>
+              <li><button class="menu-btn {idx === menuSelection ? 'selected' : ''}" on:click={() => selectMenuItem(idx)}>{item}</button></li>
             {/each}
           </ul>
         {:else if activeView === 'coverflow'}
@@ -156,8 +156,9 @@
   .lcd-body { padding: 12px; flex: 1; overflow-y: auto; }
   .menu-title { font-weight: bold; font-size: 13px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px; }
   ul { list-style: none; padding: 0; margin: 0; }
-  li { padding: 5px 8px; font-size: 13px; border-radius: 4px; cursor: pointer; color: #1e293b; }
-  li.selected { background: #38bdf8; color: #fff; font-weight: bold; }
+  li { padding: 2px 0; }
+  .menu-btn { width: 100%; text-align: left; background: none; border: none; padding: 5px 8px; font-size: 13px; border-radius: 4px; cursor: pointer; color: #1e293b; font-family: inherit; }
+  .menu-btn.selected { background: #38bdf8; color: #fff; font-weight: bold; }
   .coverflow-view { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; cursor: pointer; }
   .coverflow-stack { position: relative; width: 110px; height: 110px; display: flex; justify-content: center; align-items: center; }
   .cover-card { position: absolute; width: 90px; height: 90px; background: #cbd5e1; border-radius: 6px; box-shadow: 0 8px 16px rgba(0,0,0,0.3); overflow: hidden; display: flex; justify-content: center; align-items: center; }

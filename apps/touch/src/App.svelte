@@ -190,7 +190,7 @@
 </div>
 
 <style>
-  body { background: #0b0f19; margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+  :global(body) { background: #0b0f19; margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
   .pod-container { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
   .pod-chassis { width: 360px; height: 680px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 44px; box-shadow: 0 35px 70px rgba(0,0,0,0.8); display: flex; flex-direction: column; align-items: center; padding: 16px; box-sizing: border-box; border: 3px solid #334155; }
   .ios-status-bar { width: 100%; height: 32px; display: flex; justify-content: space-between; align-items: center; padding: 0 12px; font-size: 11px; font-weight: bold; color: #94a3b8; }
@@ -211,7 +211,7 @@
   .app-inner { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 12px; }
   .scrollable { overflow-y: auto; align-items: stretch; text-align: left; }
   .glass-art { width: 130px; height: 130px; border-radius: 14px; background: rgba(0,0,0,0.5); overflow: hidden; display: flex; justify-content: center; align-items: center; border: 1px solid rgba(255,255,255,0.2); }
-  .玻璃 art img, .glass-art img { width: 100%; height: 100%; object-fit: cover; }
+  .glass-art img { width: 100%; height: 100%; object-fit: cover; }
   .no-art { font-size: 36px; color: #64748b; }
   .meta h2 { font-size: 14px; margin: 0 0 2px 0; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .meta p { font-size: 11px; color: #94a3b8; margin: 0; }
