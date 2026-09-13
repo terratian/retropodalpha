@@ -145,7 +145,7 @@
 </div>
 
 <style>
-  body { background: #0b0f19; margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
+  :global(body) { background: #0b0f19; margin: 0; font-family: -apple-system, BlinkMacSystemFont, sans-serif; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
   .pod-container { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
   .pod-chassis { width: 380px; height: 620px; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); border-radius: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; padding: 25px 20px; box-sizing: border-box; border: 2px solid #94a3b8; }
   .lcd-screen { width: 100%; height: 260px; background: #f8fafc; color: #0f172a; border-radius: 8px; border: 4px solid #334155; display: flex; flex-direction: column; overflow: hidden; box-shadow: inset 0 4px 8px rgba(0,0,0,0.2); }
