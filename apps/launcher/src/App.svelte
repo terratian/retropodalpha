@@ -145,11 +145,14 @@
   <div class="desktop-area">
     <div class="desktop-icons">
       <div class="desktop-icon" role="button" tabindex="0" on:dblclick={() => toggleWindow('classic')} on:keydown={(e) => e.key === 'Enter' && toggleWindow('classic')}>
-        <div class="icon-box">🎛️</div>
+        <div class="icon-box ipod-classic-icon">
+          <div class="mini-screen"></div>
+          <div class="mini-wheel"></div>
+        </div>
         <span>RetroPod Classic.app</span>
       </div>
       <div class="desktop-icon" role="button" tabindex="0" on:dblclick={() => toggleWindow('touch')} on:keydown={(e) => e.key === 'Enter' && toggleWindow('touch')}>
-        <div class="icon-box">📱</div>
+        <div class="icon-box ios-device-icon">📱</div>
         <span>RetroPod Touch.app</span>
       </div>
     </div>
@@ -194,7 +197,10 @@
   <div class="dock-container">
     <div class="dock">
       <div class="dock-item" role="button" tabindex="0" title="RetroPod Classic" on:click={() => toggleWindow('classic')} on:keydown={(e) => e.key === 'Enter' && toggleWindow('classic')}>
-        <span>🎛️</span>
+        <div class="dock-ipod-icon">
+          <div class="dock-mini-screen"></div>
+          <div class="dock-mini-wheel"></div>
+        </div>
         {#if openWindows.classic}<div class="dot"></div>{/if}
       </div>
       <div class="dock-item" role="button" tabindex="0" title="RetroPod Touch" on:click={() => toggleWindow('touch')} on:keydown={(e) => e.key === 'Enter' && toggleWindow('touch')}>
@@ -224,7 +230,12 @@
   .desktop-icons { display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
   .desktop-icon { width: 80px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
   .desktop-icon:hover { background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(10px); }
-  .icon-box { font-size: 36px; margin-bottom: 4px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
+  
+  .icon-box { width: 52px; height: 64px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6px; margin-bottom: 4px; box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
+  .ipod-classic-icon { background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); border: 1px solid #cbd5e1; position: relative; }
+  .mini-screen { width: 38px; height: 24px; background: #f8fafc; border: 1px solid #334155; border-radius: 3px; margin-bottom: 6px; }
+  .mini-wheel { width: 28px; height: 28px; background: #f1f5f9; border-radius: 50%; border: 1px solid #cbd5e1; }
+  
   .desktop-icon span { font-size: 11px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); line-height: 1.2; }
   .mac-window { position: absolute; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(40px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; z-index: 10; transform-origin: bottom center; }
   .genie-open { animation: genieOpen 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -247,5 +258,8 @@
   .dock { background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.25); border-radius: 20px; padding: 8px 12px; display: flex; gap: 12px; align-items: center; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
   .dock-item { width: 48px; height: 48px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 26px; cursor: pointer; transition: transform 0.2s; position: relative; }
   .dock-item:hover { transform: scale(1.25) translateY(-6px); }
+  .dock-ipod-icon { width: 32px; height: 40px; background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); border-radius: 6px; display: flex; flex-direction: column; align-items: center; padding-top: 4px; border: 1px solid #cbd5e1; }
+  .dock-mini-screen { width: 24px; height: 15px; background: #f8fafc; border: 1px solid #334155; border-radius: 2px; margin-bottom: 4px; }
+  .dock-mini-wheel { width: 18px; height: 18px; background: #f1f5f9; border-radius: 50%; border: 1px solid #cbd5e1; }
   .dot { width: 4px; height: 4px; background: #fff; border-radius: 50%; position: absolute; bottom: 3px; }
 </style>
