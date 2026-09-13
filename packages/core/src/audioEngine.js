@@ -1,31 +1,59 @@
 let audioCtx = null;
 let sourceNode = null;
 let analyserNode = null;
-let masterGainNode = null;
+let eqFilters = [];
+let clickAudio = new Audio('https://actions.google.com/sounds/v1/ui/click.ogg');
 
-export async function initAudioEngine(audioElement) {
-  try {
-    const AudioContext = window.AudioContext || window.webkitAudioContext;
-    if (!audioCtx) {
-      audioCtx = new AudioContext();
-    }
-    if (audioCtx.state === 'suspended') {
-      await audioCtx.resume();
-    }
+export function initAudioEngine(audioElement) {
+  if (audioCtx) return;
+  const AudioContext = window.AudioContext || window.webkitAudioContext;
+  audioCtx = new AudioContext();
+  
+  sourceNode = audioCtx.createMediaElementSource(audioElement);
+  analyserNode = audioCtx.createAnalyser();
+  analyserNode.fftSize = 128;
 
-    if (!sourceNode && audioElement) {
-      sourceNode = audioCtx.createMediaElementSource(audioElement);
-      analyserNode = audioCtx.createAnalyser();
-      analyserNode.fftSize = 64;
-      masterGainNode = audioCtx.createGain();
+  // Create 3-band parametric EQ (Low Shelf, Peaking, High Shelf)
+  const bassFilter = audioCtx.createBiquadFilter();
+  bassFilter.type = 'lowshelf';
+  bassFilter.frequency.setValueAtTime(250, audioCtx.currentTime);
 
-      sourceNode.connect(masterGainNode);
-      masterGainNode.connect(analyserNode);
-      analyserNode.connect(audioCtx.destination);
-    }
-  } catch (e) {
-    console.warn('Web Audio initialization note:', e);
-  }
+  const midFilter = audioCtx.createBiquadFilter();
+  midFilter.type = 'peaking';
+  midFilter.frequency.setValueAtTime(1500, audioCtx.currentTime);
+  midFilter.Q.setValueAtTime(1, audioCtx.currentTime);
+
+  const trebleFilter = audioCtx.createBiquadFilter();
+  trebleFilter.type = 'highshelf';
+  trebleFilter.frequency.setValueAtTime(4000, audioCtx.currentTime);
+
+  eqFilters = [bassFilter, midFilter, trebleFilter];
+
+  // Chain: Source -> Bass -> Mid -> Treble -> Analyser -> Destination
+  sourceNode.connect(bassFilter);
+  bassFilter.connect(midFilter);
+  midFilter.connect(trebleFilter);
+  trebleFilter.connect(analyserNode);
+  analyserNode.connect(audioCtx.destination);
+}
+
+export function setEqPreset(presetName) {
+  if (!audioCtx || eqFilters.length < 3) return;
+  const [bass, mid, treble] = eqFilters;
+  
+  const presets = {
+    'Flat': { bass: 0, mid: 0, treble: 0 },
+    'Rock': { bass: 5, mid: -2, treble: 4 },
+    'Bass Booster': { bass: 9, mid: 1, treble: 2 },
+    'Acoustic': { bass: 2, mid: 4, treble: 3 },
+    'Classical': { bass: 4, mid: 0, treble: 5 }
+  };
+
+  const p = presets[presetName] || presets['Flat'];
+  bass.gain.setValueAtTime(p.bass, audioCtx.currentTime);
+  mid.gain.setValueAtTime(p.mid, audioCtx.currentTime);
+  treble.gain.setValueAtTime(p.treble, audioCtx.currentTime);
+  if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
 export function getAudioSpectrum(dataArray) {
@@ -35,21 +63,7 @@ export function getAudioSpectrum(dataArray) {
 }
 
 export function playClickSound() {
-  try {
-    const ctx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(140, ctx.currentTime);
-    osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.03);
-    gain.gain.setValueAtTime(0.12, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.03);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start();
-    osc.stop(ctx.currentTime + 0.03);
-  } catch (e) {
-    // Audio restricted before user gesture
-  }
+  clickAudio.currentTime = 0;
+  clickAudio.volume = 0.3;
+  clickAudio.play().catch(() => {});
 }
