@@ -6,7 +6,13 @@
     "apps/*"
   ],
   "scripts": {
+    "build": "vite build",
     "build:classic": "npm --workspace=apps/classic run build",
     "build:touch": "npm --workspace=apps/touch run build"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^3.1.2",
+    "svelte": "^4.2.18",
+    "vite": "^5.3.4"
   }
 }
