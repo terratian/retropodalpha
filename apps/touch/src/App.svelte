@@ -1,19 +1,27 @@
 <script>
   import { onMount } from 'svelte';
-  import { initAudioEngine, playClickSound } from '@retropod/core/src/audioEngine.js';
+  import { initAudioEngine, playClickSound, setEqPreset } from '@retropod/core/src/audioEngine.js';
   import { scanDirectoryZeroCopy } from '@retropod/core/src/fileSystemStore.js';
   import { fetchAudiophileMetadata } from '@retropod/core/src/metadataService.js';
+  import { savePlaylist, getAllPlaylists } from '@retropod/core/src/playlistStore.js';
   import NebulaVisualizer from '@retropod/visualizers/src/NebulaVisualizer.svelte';
 
   let audioElement;
   let tracks = [];
   let currentIndex = 0;
   let isPlaying = false;
-  let activeApp = 'home';
+  let activeApp = 'home'; // home, player, coverflow, eq, lyrics, visualizer, playlists, files
   let metadataInfo = null;
+  let currentEq = 'Flat';
+  let visualizerMode = 0;
+  let playlists = {};
+  let playlistNameInput = '';
+
+  const eqPresets = ['Flat', 'Rock', 'Bass Booster', 'Acoustic', 'Classical'];
 
   onMount(() => {
     if (audioElement) initAudioEngine(audioElement);
+    playlists = getAllPlaylists();
   });
 
   async function handleOpenDirectory() {
@@ -59,150 +67,202 @@
 
   function openApp(appName) {
     playClickSound();
-    if (appName === 'library' && tracks.length === 0) {
+    if (appName === 'files' && tracks.length === 0) {
       handleOpenDirectory();
     } else {
       activeApp = appName;
     }
   }
+
+  function changeEq(preset) {
+    playClickSound();
+    currentEq = preset;
+    setEqPreset(preset);
+  }
+
+  function saveCurrentPlaylist() {
+    if (!playlistNameInput.trim() || tracks.length === 0) return;
+    savePlaylist(playlistNameInput.trim(), tracks);
+    playlists = getAllPlaylists();
+    playlistNameInput = '';
+    playClickSound();
+  }
 </script>
 
 <audio bind:this={audioElement} on:ended={() => { if(tracks.length > 0) loadTrack((currentIndex + 1) % tracks.length); }}></audio>
 
-<div class="device-stage">
-  <div class="device-bezel">
-    <div class="speaker-slit"></div>
-    <div class="camera-dot"></div>
-    
-    <div class="ios-screen">
-      {#if activeApp === 'visualizer'}
-        <div class="ios-status-bar">
-          <span>1:12 AM</span>
-          <button class="status-back" on:click={() => activeApp = 'home'}>‹ SpringBoard</button>
-          <span>5G 🔋</span>
-        </div>
-        <NebulaVisualizer {isPlaying} currentTrack={tracks[currentIndex]} visualizerMode={2} />
-      {:else if activeApp === 'player'}
-        <div class="ios-status-bar">
-          <span>1:12 AM</span>
-          <button class="status-back" on:click={() => activeApp = 'home'}>‹ SpringBoard</button>
-          <span>5G 🔋</span>
-        </div>
-        <div class="ios-player-view">
-          <div class="album-art-container">
-            {#if tracks[currentIndex]?.artUrl}
-              <img src={tracks[currentIndex].artUrl} alt="Album Art" />
-            {:else}
-              <div class="no-art-glyph">🎵</div>
-            {/if}
-            <div class="glass-reflection"></div>
-          </div>
-          
-          <div class="track-info-card">
-            <h2>{tracks[currentIndex]?.title || 'No Track Loaded'}</h2>
-            <p class="artist-sub">{tracks[currentIndex]?.artist || 'Tap Files to mount music library'}</p>
-            
-            {#if metadataInfo}
-              <div class="audiophile-badge">
-                <p><strong>Credits:</strong> {metadataInfo.trackFacts}</p>
-                <p><strong>Pressing:</strong> {metadataInfo.albumFacts}</p>
-                <p><strong>DAC:</strong> {metadataInfo.signalChain}</p>
-              </div>
-            {/if}
-          </div>
+<div class="ios-container">
+  <div class="ios-status-bar">
+    <span>1:42 AM</span>
+    {#if activeApp !== 'home'}
+      <button class="back-home-btn" on:click={() => activeApp = 'home'}>‹ SpringBoard</button>
+    {/if}
+    <span>5G Wi-Fi 🔋</span>
+  </div>
 
-          <div class="ios-control-bar">
-            <button on:click={() => { playClickSound(); if(tracks.length) loadTrack((currentIndex - 1 + tracks.length) % tracks.length); }}>⏮</button>
-            <button class="play-btn-round" on:click={togglePlay}>{isPlaying ? '❚❚' : '▶'}</button>
-            <button on:click={() => { playClickSound(); if(tracks.length) loadTrack((currentIndex + 1) % tracks.length); }}>⏭</button>
-          </div>
+  <div class="ios-viewport">
+    {#if activeApp === 'home'}
+      <div class="springboard-grid">
+        <div class="app-tile" on:click={() => openApp('player')}>
+          <div class="tile-icon music-bg">🎵</div>
+          <span>Now Playing</span>
         </div>
-      {:else}
-        <div class="ios-status-bar">
-          <span>1:12 AM</span>
-          <span>5G Wi-Fi 🔋</span>
+        <div class="app-tile" on:click={() => openApp('coverflow')}>
+          <div class="tile-icon cover-bg">💿</div>
+          <span>3D CoverFlow</span>
         </div>
+        <div class="app-tile" on:click={() => openApp('eq')}>
+          <div class="tile-icon eq-bg">🎚️</div>
+          <span>Wolfson EQ</span>
+        </div>
+        <div class="app-tile" on:click={() => openApp('lyrics')}>
+          <div class="tile-icon lyrics-bg">📜</div>
+          <span>Liner Notes</span>
+        </div>
+        <div class="app-tile" on:click={() => openApp('visualizer')}>
+          <div class="tile-icon visualizer-bg">✨</div>
+          <span>Nebula Visuals</span>
+        </div>
+        <div class="app-tile" on:click={() => openApp('playlists')}>
+          <div class="tile-icon playlist-bg">📑</div>
+          <span>Playlists</span>
+        </div>
+        <div class="app-tile" on:click={handleOpenDirectory}>
+          <div class="tile-icon files-bg">📁</div>
+          <span>Mount Files</span>
+        </div>
+      </div>
 
-        <div class="springboard-grid">
-          <div class="icon-wrapper" on:click={() => openApp('player')}>
-            <div class="ios-icon music-app-icon">
-              <span class="icon-glyph">🎵</span>
-              <div class="icon-gloss"></div>
+      <div class="ios-dock">
+        <div class="app-tile" on:click={() => openApp('player')}>
+          <div class="tile-icon music-bg dock-icon">🎵</div>
+        </div>
+        <div class="app-tile" on:click={() => openApp('coverflow')}>
+          <div class="tile-icon cover-bg dock-icon">💿</div>
+        </div>
+        <div class="app-tile" on:click={() => openApp('visualizer')}>
+          <div class="tile-icon visualizer-bg dock-icon">✨</div>
+        </div>
+      </div>
+
+    {:else if activeApp === 'player'}
+      <div class="app-inner-view">
+        <div class="big-artwork">
+          {#if tracks[currentIndex]?.artUrl}
+            <img src={tracks[currentIndex].artUrl} alt="Art" />
+          {:else}
+            <div class="no-art">♪</div>
+          {/if}
+        </div>
+        <h2>{tracks[currentIndex]?.title || 'No Track Loaded'}</h2>
+        <p class="artist-sub">{tracks[currentIndex]?.artist || 'Mount Files to begin'}</p>
+        
+        <div class="playback-controls">
+          <button on:click={() => { playClickSound(); if(tracks.length) loadTrack((currentIndex - 1 + tracks.length) % tracks.length); }}>⏮</button>
+          <button class="play-big" on:click={togglePlay}>{isPlaying ? '❚❚' : '▶'}</button>
+          <button on:click={() => { playClickSound(); if(tracks.length) loadTrack((currentIndex + 1) % tracks.length); }}>⏭</button>
+        </div>
+      </div>
+
+    {:else if activeApp === 'coverflow'}
+      <div class="app-inner-view">
+        <h3 class="app-title">3D Cover Flow</h3>
+        <div class="coverflow-stage">
+          {#each tracks as t, i}
+            <div class="cf-card {i === currentIndex ? 'cf-active' : ''}" style="transform: translateX({(i - currentIndex) * 60}px) scale({i === currentIndex ? 1 : 0.85}); z-index: {i === currentIndex ? 10 : 5 - Math.abs(i - currentIndex)};" on:click={() => loadTrack(i)}>
+              {#if t.artUrl}<img src={t.artUrl} alt="Art" />{:else}<div class="no-art">♪</div>{/if}
             </div>
-            <span class="icon-label">RetroMusic</span>
-          </div>
-
-          <div class="icon-wrapper" on:click={() => openApp('visualizer')}>
-            <div class="ios-icon nebula-app-icon">
-              <span class="icon-glyph">✨</span>
-              <div class="icon-gloss"></div>
-            </div>
-            <span class="icon-label">Nebula</span>
-          </div>
-
-          <div class="icon-wrapper" on:click={handleOpenDirectory}>
-            <div class="ios-icon files-app-icon">
-              <span class="icon-glyph">📁</span>
-              <div class="icon-gloss"></div>
-            </div>
-            <span class="icon-label">Files</span>
-          </div>
+          {/each}
         </div>
+        <p class="cf-label">{tracks[currentIndex]?.title || 'Select track'}</p>
+      </div>
 
-        <div class="ios-glass-dock">
-          <div class="icon-wrapper" on:click={() => openApp('player')}>
-            <div class="ios-icon music-app-icon dock-icon">
-              <span class="icon-glyph">🎵</span>
-              <div class="icon-gloss"></div>
-            </div>
-          </div>
-          <div class="icon-wrapper" on:click={() => openApp('visualizer')}>
-            <div class="ios-icon nebula-app-icon dock-icon">
-              <span class="icon-glyph">✨</span>
-              <div class="icon-gloss"></div>
-            </div>
-          </div>
+    {:else if activeApp === 'eq'}
+      <div class="app-inner-view">
+        <h3 class="app-title">Wolfson Parametric EQ</h3>
+        <div class="eq-preset-list">
+          {#each eqPresets as preset}
+            <button class="eq-btn {currentEq === preset ? 'eq-active' : ''}" on:click={() => changeEq(preset)}>{preset}</button>
+          {/each}
         </div>
-      {/if}
-    </div>
+      </div>
 
-    <div class="home-indicator"></div>
+    {:else if activeApp === 'lyrics'}
+      <div class="app-inner-view scrollable">
+        <h3 class="app-title">Liner Notes & Credits</h3>
+        <div class="metadata-card">
+          <p><strong>Track:</strong> {tracks[currentIndex]?.title || 'N/A'}</p>
+          <p><strong>MusicBrainz / Discogs:</strong></p>
+          <p>{metadataInfo?.trackFacts || 'Loading credits...'}</p>
+          <p>{metadataInfo?.albumFacts || 'Loading pressing records...'}</p>
+        </div>
+      </div>
+
+    {:else if activeApp === 'visualizer'}
+      <div class="app-inner-view">
+        <div class="vis-controls">
+          <button class="eq-btn" on:click={() => visualizerMode = (visualizerMode + 1) % 3}>Mode: {visualizerMode}</button>
+        </div>
+        <NebulaVisualizer {isPlaying} currentTrack={tracks[currentIndex]} {visualizerMode} />
+      </div>
+
+    {:else if activeApp === 'playlists'}
+      <div class="app-inner-view scrollable">
+        <h3 class="app-title">Playlist Manager</h3>
+        <div class="playlist-form">
+          <input type="text" placeholder="New Playlist Name" bind:value={playlistNameInput} />
+          <button class="eq-btn" on:click={saveCurrentPlaylist}>Save Current Queue</button>
+        </div>
+        <div class="playlist-list">
+          {#each Object.keys(playlists) as name}
+            <div class="playlist-item">
+              <span>{name} ({playlists[name].length} tracks)</span>
+            </div>
+          {/each}
+        </div>
+      </div>
+    {/if}
   </div>
 </div>
 
 <style>
-  :global(body) { margin: 0; padding: 0; background: #05070d; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", sans-serif; color: #fff; overflow: hidden; }
-  .device-stage { width: 100vw; height: 100vh; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at center, #1e1b4b 0%, #030712 100%); }
-  .device-bezel { width: 390px; height: 780px; background: linear-gradient(135deg, #27272a 0%, #09090b 100%); border-radius: 52px; padding: 18px; box-sizing: border-box; box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 2px 4px rgba(255,255,255,0.25); border: 3px solid #3f3f46; position: relative; display: flex; flex-direction: column; align-items: center; }
-  .speaker-slit { width: 60px; height: 5px; background: #18181b; border-radius: 3px; margin-top: 4px; }
-  .camera-dot { width: 10px; height: 10px; background: #121212; border-radius: 50%; position: absolute; top: 22px; left: 120px; border: 1px solid #27272a; }
-  .ios-screen { width: 100%; height: 720px; background: linear-gradient(135deg, #31103f 0%, #1e1b4b 50%, #0f172a 100%); border-radius: 38px; overflow: hidden; display: flex; flex-direction: column; justify-content: space-between; position: relative; margin-top: 10px; box-shadow: inset 0 0 20px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); }
-  .ios-status-bar { display: flex; justify-content: space-between; align-items: center; padding: 12px 20px; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.9); z-index: 20; }
-  .status-back { background: rgba(255,255,255,0.15); border: none; color: #38bdf8; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; backdrop-filter: blur(10px); }
-  .springboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; padding: 24px 20px; align-content: start; z-index: 10; }
-  .icon-wrapper { display: flex; flex-direction: column; align-items: center; cursor: pointer; gap: 6px; }
-  .ios-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; justify-content: center; align-items: center; position: relative; overflow: hidden; box-shadow: 0 12px 25px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.6); transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
-  .ios-icon:hover { transform: scale(1.08); }
-  .music-app-icon { background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%); }
-  .nebula-app-icon { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); }
-  .files-app-icon { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-  .icon-glyph { font-size: 28px; z-index: 2; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
-  .icon-gloss { position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: linear-gradient(to bottom, rgba(255,255,255,0.35) 0%, rgba(255,255,255,0) 100%); z-index: 1; pointer-events: none; }
-  .icon-label { font-size: 11px; font-weight: 500; text-shadow: 0 1px 3px rgba(0,0,0,0.8); color: #f1f5f9; }
-  .ios-glass-dock { background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(25px); border-radius: 28px; margin: 0 16px 16px 16px; padding: 12px 20px; display: flex; justify-content: space-around; align-items: center; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
-  .dock-icon { width: 54px; height: 54px; border-radius: 14px; }
-  .home-indicator { width: 130px; height: 4px; background: rgba(255,255,255,0.5); border-radius: 2px; position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); }
-  .ios-player-view { display: flex; flex-direction: column; align-items: center; padding: 10px 20px 20px 20px; flex: 1; justify-content: space-between; }
-  .album-art-container { width: 180px; height: 180px; border-radius: 20px; background: rgba(15, 23, 42, 0.8); overflow: hidden; display: flex; justify-content: center; align-items: center; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.15); }
-  .album-art-container img { width: 100%; height: 100%; object-fit: cover; }
-  .no-art-glyph { font-size: 56px; color: #64748b; }
-  .glass-reflection { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(135deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 50%); pointer-events: none; }
-  .track-info-card { width: 100%; text-align: center; }
-  .track-info-card h2 { font-size: 16px; font-weight: 700; margin: 0 0 4px 0; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .artist-sub { font-size: 13px; color: #94a3b8; margin: 0 0 10px 0; }
-  .audiophile-badge { background: rgba(15, 23, 42, 0.7); backdrop-filter: blur(10px); border-radius: 12px; padding: 8px 12px; font-size: 10px; color: #cbd5e1; text-align: left; border: 1px solid rgba(255,255,255,0.1); max-height: 70px; overflow-y: auto; }
-  .ios-control-bar { display: flex; gap: 30px; align-items: center; margin-bottom: 10px; }
-  .ios-control-bar button { background: none; border: none; font-size: 26px; color: #fff; cursor: pointer; transition: transform 0.1s; }
-  .ios-control-bar button:active { transform: scale(0.9); }
-  .play-btn-round { font-size: 34px !important; color: #38bdf8 !important; }
+  .ios-container { width: 100%; height: 100%; background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%); display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  .ios-status-bar { height: 40px; display: flex; justify-content: space-between; align-items: center; padding: 0 16px; font-size: 13px; font-weight: 600; background: rgba(0,0,0,0.3); backdrop-filter: blur(10px); }
+  .back-home-btn { background: rgba(255,255,255,0.15); border: none; color: #38bdf8; padding: 4px 10px; border-radius: 12px; cursor: pointer; font-size: 11px; font-weight: bold; }
+  .ios-viewport { flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding: 16px; overflow: hidden; position: relative; }
+  .springboard-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; padding: 10px; }
+  .app-tile { display: flex; flex-direction: column; align-items: center; cursor: pointer; gap: 6px; text-align: center; font-size: 11px; }
+  .tile-icon { width: 64px; height: 64px; border-radius: 16px; display: flex; justify-content: center; align-items: center; font-size: 28px; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
+  .music-bg { background: linear-gradient(135deg, #f43f5e, #be123c); }
+  .cover-bg { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+  .eq-bg { background: linear-gradient(135deg, #06b6d4, #0e7490); }
+  .lyrics-bg { background: linear-gradient(135deg, #10b981, #047857); }
+  .visualizer-bg { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+  .playlist-bg { background: linear-gradient(135deg, #f59e0b, #b45309); }
+  .files-bg { background: linear-gradient(135deg, #ec4899, #be185d); }
+  .ios-dock { background: rgba(255,255,255,0.15); backdrop-filter: blur(25px); border-radius: 28px; padding: 10px 20px; display: flex; justify-content: space-around; align-items: center; border: 1px solid rgba(255,255,255,0.2); }
+  .dock-icon { width: 52px; height: 52px; font-size: 24px; }
+  .app-inner-view { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 14px; padding: 10px; }
+  .scrollable { overflow-y: auto; align-items: stretch; text-align: left; }
+  .app-title { font-size: 16px; font-weight: bold; margin: 0 0 10px 0; color: #38bdf8; text-align: center; }
+  .big-artwork { width: 160px; height: 160px; border-radius: 16px; background: rgba(255,255,255,0.1); overflow: hidden; display: flex; justify-content: center; align-items: center; box-shadow: 0 15px 30px rgba(0,0,0,0.5); }
+  .big-artwork img { width: 100%; height: 100%; object-fit: cover; }
+  .no-art { font-size: 48px; color: #64748b; }
+  .artist-sub { font-size: 13px; color: #94a3b8; margin: 0; }
+  .playback-controls { display: flex; gap: 24px; align-items: center; margin-top: 10px; }
+  .playback-controls button { background: none; border: none; font-size: 26px; color: #fff; cursor: pointer; }
+  .play-big { font-size: 36px !important; color: #38bdf8 !important; }
+  .coverflow-stage { position: relative; width: 100%; height: 140px; display: flex; justify-content: center; align-items: center; }
+  .cf-card { position: absolute; width: 110px; height: 110px; background: #334155; border-radius: 10px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5); transition: transform 0.3s ease; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+  .cf-active { border: 2px solid #38bdf8; box-shadow: 0 15px 35px rgba(56,189,248,0.5); }
+  .cf-card img { width: 100%; height: 100%; object-fit: cover; }
+  .cf-label { font-size: 12px; font-weight: bold; color: #e2e8f0; margin-top: 10px; }
+  .eq-preset-list { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 240px; margin: 0 auto; }
+  .eq-btn { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 10px; border-radius: 10px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+  .eq-active { background: #38bdf8; color: #0f172a; border-color: #38bdf8; }
+  .metadata-card { background: rgba(15,23,42,0.8); padding: 12px; border-radius: 12px; font-size: 12px; line-height: 1.4; border: 1px solid rgba(255,255,255,0.1); }
+  .playlist-form { display: flex; gap: 8px; margin-bottom: 12px; }
+  .playlist-form input { flex: 1; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; padding: 8px; color: #fff; }
+  .playlist-list { display: flex; flex-direction: column; gap: 6px; }
+  .playlist-item { background: rgba(255,255,255,0.05); padding: 10px; border-radius: 8px; font-size: 13px; }
 </style>
