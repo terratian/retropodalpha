@@ -6,7 +6,7 @@
   function selectMode(mode) {
     playClickSound();
     if (onSelectMode) onSelectMode(mode);
-    else window.location.href = `/${mode}/index.html`;
+    else window.location.href = `/${mode}`;
   }
 </script>
 
@@ -16,13 +16,13 @@
     <p class="subtitle">Select Your Hardware Experience</p>
     
     <div class="mode-options">
-      <div class="mode-tile classic-tile" on:click={() => selectMode('classic')}>
+      <div class="mode-tile classic-tile" role="button" tabindex="0" on:click={() => selectMode('classic')} on:keydown={(e) => e.key === 'Enter' && selectMode('classic')}>
         <div class="tile-icon">🎛️</div>
         <h2>RetroPod Classic</h2>
         <p>5th Generation Click Wheel, Wolfson DAC DSP, and physical chassis rendering.</p>
       </div>
 
-      <div class="mode-tile touch-tile" on:click={() => selectMode('touch')}>
+      <div class="mode-tile touch-tile" role="button" tabindex="0" on:click={() => selectMode('touch')} on:keydown={(e) => e.key === 'Enter' && selectMode('touch')}>
         <div class="tile-icon">📱</div>
         <h2>RetroPod Touch</h2>
         <p>iOS 13 SpringBoard layout, frosted glass dock, and immersive audio-reactive visuals.</p>
@@ -32,8 +32,7 @@
 </div>
 
 <style>
-  body { background: #04060f; margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; overflow: hidden; }
-  .boot-selector { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #1e1b4b 0%, #04060f 100%); }
+  .boot-selector { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; background: radial-gradient(circle at center, #1e1b4b 0%, #04060f 100%); position: fixed; top: 0; left: 0; }
   .boot-card { text-align: center; max-width: 700px; padding: 40px; background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(25px); border-radius: 32px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.8); }
   h1 { font-size: 32px; margin: 0 0 8px 0; background: linear-gradient(135deg, #38bdf8, #818cf8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .subtitle { color: #94a3b8; font-size: 14px; margin-bottom: 30px; }

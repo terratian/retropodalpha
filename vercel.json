@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/touch", "destination": "/apps/touch/index.html" },
+    { "source": "/classic", "destination": "/apps/classic/index.html" }
+  ]
+}
