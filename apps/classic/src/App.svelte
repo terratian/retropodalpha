@@ -5,6 +5,7 @@
   import NebulaVisualizer from '@retropod/core/src/NebulaVisualizer.svelte';
 
   let audioElement;
+  let wheelEl;
   let tracks = [];
   let currentIndex = 0;
   let isPlaying = false;
@@ -12,6 +13,11 @@
   let menuSelection = 0;
   let currentEq = 'Flat';
   let visualizerMode = 0;
+
+  let dragging = false;
+  let lastAngle = 0;
+  let angleAccum = 0;
+  const TICK_THRESHOLD = 28; // degrees of travel per scroll "tick"
 
   const menuItems = ['Music Library', '3D Cover Flow', 'Wolfson Parametric EQ', 'Liner Notes & Lyrics', 'Nebula Visualizer'];
   const eqPresets = ['Flat', 'Rock', 'Bass Booster', 'Acoustic', 'Classical'];
@@ -113,7 +119,62 @@
     else if (idx === 3) activeView = 'lyrics';
     else if (idx === 4) activeView = 'visualizer';
   }
+
+  // --- Click-wheel drag-to-scroll (mouse + touch unified via Pointer Events) ---
+
+  function getAngle(clientX, clientY) {
+    const rect = wheelEl.getBoundingClientRect();
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
+  }
+
+  function handleRingPointerDown(e) {
+    if (e.target.closest('button')) return; // let buttons handle their own clicks
+    dragging = true;
+    angleAccum = 0;
+    lastAngle = getAngle(e.clientX, e.clientY);
+    wheelEl.setPointerCapture(e.pointerId);
+  }
+
+  function handleRingPointerMove(e) {
+    if (!dragging) return;
+    const angle = getAngle(e.clientX, e.clientY);
+    let delta = angle - lastAngle;
+    if (delta > 180) delta -= 360;
+    if (delta < -180) delta += 360;
+    angleAccum += delta;
+    lastAngle = angle;
+
+    while (angleAccum >= TICK_THRESHOLD) {
+      handleWheelClick(1);
+      angleAccum -= TICK_THRESHOLD;
+    }
+    while (angleAccum <= -TICK_THRESHOLD) {
+      handleWheelClick(-1);
+      angleAccum += TICK_THRESHOLD;
+    }
+  }
+
+  function handleRingPointerUp(e) {
+    dragging = false;
+    if (wheelEl?.releasePointerCapture) {
+      try { wheelEl.releasePointerCapture(e.pointerId); } catch (err) {}
+    }
+  }
+
+  // --- Keyboard support ---
+
+  function handleKeydown(e) {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') { e.preventDefault(); handleWheelClick(1); }
+    else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); handleWheelClick(-1); }
+    else if (e.key === 'Enter') { e.preventDefault(); selectMenuItem(menuSelection); }
+    else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
+    else if (e.key === 'Escape' || e.key === 'Backspace') { e.preventDefault(); activeView = 'menu'; }
+  }
 </script>
+
+<svelte:window on:keydown={handleKeydown} />
 
 <audio bind:this={audioElement} on:ended={() => handleWheelClick(1)}></audio>
 
@@ -171,12 +232,39 @@
       </div>
     </div>
 
-    <div class="click-wheel">
+    <div
+      class="click-wheel"
+      bind:this={wheelEl}
+      on:pointerdown={handleRingPointerDown}
+      on:pointermove={handleRingPointerMove}
+      on:pointerup={handleRingPointerUp}
+      on:pointercancel={handleRingPointerUp}
+    >
       <button class="w-menu" on:click={() => activeView = 'menu'}>MENU</button>
-      <button class="w-prev" on:click={() => handleWheelClick(-1)}>⟨⟨</button>
-      <button class="w-next" on:click={() => handleWheelClick(1)}>⟩⟩</button>
-      <button class="w-play" on:click={togglePlay}>⏸/▶</button>
-      <button class="w-center" on:click={() => selectMenuItem(menuSelection)}></button>
+
+      <button class="w-prev" on:click={() => handleWheelClick(-1)} aria-label="Previous">
+        <svg class="wheel-icon" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M11 18V6l-8.5 6 8.5 6z"/>
+          <path fill="currentColor" d="M20 18V6l-8.5 6 8.5 6z"/>
+        </svg>
+      </button>
+
+      <button class="w-next" on:click={() => handleWheelClick(1)} aria-label="Next">
+        <svg class="wheel-icon" viewBox="0 0 24 24">
+          <path fill="currentColor" d="M13 18V6l8.5 6-8.5 6z"/>
+          <path fill="currentColor" d="M4 18V6l8.5 6-8.5 6z"/>
+        </svg>
+      </button>
+
+      <button class="w-play" on:click={togglePlay} aria-label="Play/Pause">
+        {#if isPlaying}
+          <svg class="wheel-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+        {:else}
+          <svg class="wheel-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+        {/if}
+      </button>
+
+      <button class="w-center" on:click={() => selectMenuItem(menuSelection)} aria-label="Select"></button>
     </div>
   </div>
 </div>
@@ -210,11 +298,40 @@
   .no-art { font-size: 28px; color: #64748b; }
   .track-title { font-weight: bold; font-size: 12px; margin: 0; }
   .track-artist { color: #475569; font-size: 11px; margin: 2px 0; }
-  .click-wheel { width: 210px; height: 210px; background: #f1f5f9; border-radius: 50%; position: relative; box-shadow: 0 8px 20px rgba(0,0,0,0.15); border: 1px solid #cbd5e1; display: flex; justify-content: center; align-items: center; margin-top: 20px; }
-  .click-wheel button { position: absolute; background: transparent; border: none; font-size: 11px; font-weight: bold; color: #475569; cursor: pointer; }
-  .w-menu { top: 14px; left: 50%; transform: translateX(-50%); }
-  .w-prev { left: 16px; top: 50%; transform: translateY(-50%); }
-  .w-next { right: 16px; top: 50%; transform: translateY(-50%); }
-  .w-play { bottom: 14px; left: 50%; transform: translateX(-50%); }
+
+  .click-wheel {
+    width: 210px;
+    height: 210px;
+    background: #f1f5f9;
+    border-radius: 50%;
+    position: relative;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border: 1px solid #cbd5e1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+  }
+  .click-wheel:active { cursor: grabbing; }
+  .click-wheel button {
+    position: absolute;
+    background: transparent;
+    border: none;
+    font-size: 11px;
+    font-weight: bold;
+    color: #475569;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .wheel-icon { width: 20px; height: 20px; color: #475569; }
+  .w-menu { top: 16px; left: 50%; transform: translateX(-50%); letter-spacing: 0.5px; }
+  .w-prev { left: 18px; top: 50%; transform: translateY(-50%); }
+  .w-next { right: 18px; top: 50%; transform: translateY(-50%); }
+  .w-play { bottom: 16px; left: 50%; transform: translateX(-50%); }
   .w-center { width: 75px; height: 75px; background: #e2e8f0; border-radius: 50%; border: 1px solid #cbd5e1; cursor: pointer; }
 </style>
