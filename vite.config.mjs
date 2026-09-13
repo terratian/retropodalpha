@@ -18,6 +18,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: resolve(__dirname, 'index.html'),
+        launcher: resolve(__dirname, 'apps/launcher/index.html'),
         shuffle: resolve(__dirname, 'apps/shuffle/index.html'),
         nano: resolve(__dirname, 'apps/nano/index.html'),
         classic: resolve(__dirname, 'apps/classic/index.html'),

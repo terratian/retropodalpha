@@ -2,6 +2,8 @@
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/apps/launcher", "destination": "/apps/launcher/index.html" },
+    { "source": "/apps/launcher/:match*", "destination": "/apps/launcher/index.html" },
     { "source": "/apps/shuffle", "destination": "/apps/shuffle/index.html" },
     { "source": "/apps/shuffle/:match*", "destination": "/apps/shuffle/index.html" },
     { "source": "/apps/nano", "destination": "/apps/nano/index.html" },
