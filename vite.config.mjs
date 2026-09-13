@@ -9,6 +9,11 @@ const __dirname = dirname(__filename);
 
 export default defineConfig({
   plugins: [svelte()],
+  resolve: {
+    alias: {
+      '@retropod/core': resolve(__dirname, 'packages/core')
+    }
+  },
   build: {
     rollupOptions: {
       input: {
