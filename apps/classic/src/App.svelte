@@ -85,7 +85,14 @@
     <div class="lcd-screen">
       <div class="lcd-header">
         <span>RetroPod 5G</span>
-        <span>{isPlaying ? '▶' : '⏸'}</span>
+        <div class="lcd-status-right">
+          {#if isPlaying}
+            <svg class="lcd-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>
+          {:else}
+            <svg class="lcd-icon" viewBox="0 0 24 24"><path fill="currentColor" d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+          {/if}
+          <svg class="lcd-battery" viewBox="0 0 24 24"><path fill="currentColor" d="M16 7H4c-1.1 0-2 .9-2 2v6c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm0 8H4V9h12v6zm4-5h2v4h-2z"/></svg>
+        </div>
       </div>
       <div class="lcd-body">
         {#if activeView === 'menu'}
@@ -142,7 +149,10 @@
   .pod-container { display: flex; justify-content: center; align-items: center; width: 100vw; height: 100vh; }
   .pod-chassis { width: 380px; height: 620px; background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%); border-radius: 40px; box-shadow: 0 25px 50px rgba(0,0,0,0.6); display: flex; flex-direction: column; align-items: center; padding: 25px 20px; box-sizing: border-box; border: 2px solid #94a3b8; }
   .lcd-screen { width: 100%; height: 260px; background: #f8fafc; color: #0f172a; border-radius: 8px; border: 4px solid #334155; display: flex; flex-direction: column; overflow: hidden; box-shadow: inset 0 4px 8px rgba(0,0,0,0.2); }
-  .lcd-header { background: #cbd5e1; padding: 4px 10px; font-size: 11px; font-weight: bold; display: flex; justify-content: space-between; border-bottom: 1px solid #94a3b8; }
+  .lcd-header { background: #cbd5e1; padding: 4px 10px; font-size: 11px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #94a3b8; }
+  .lcd-status-right { display: flex; align-items: center; gap: 4px; }
+  .lcd-icon { width: 10px; height: 10px; }
+  .lcd-battery { width: 14px; height: 14px; }
   .lcd-body { padding: 12px; flex: 1; overflow-y: auto; }
   .menu-title { font-weight: bold; font-size: 13px; border-bottom: 1px solid #cbd5e1; padding-bottom: 4px; margin-bottom: 6px; }
   ul { list-style: none; padding: 0; margin: 0; }
