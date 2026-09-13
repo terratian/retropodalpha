@@ -1,6 +1,15 @@
 {
+  "buildCommand": "npm run build",
+  "outputDirectory": "dist",
   "rewrites": [
-    { "source": "/touch", "destination": "/apps/touch/index.html" },
-    { "source": "/classic", "destination": "/apps/classic/index.html" }
+    { "source": "/apps/shuffle", "destination": "/apps/shuffle/index.html" },
+    { "source": "/apps/shuffle/:match*", "destination": "/apps/shuffle/index.html" },
+    { "source": "/apps/nano", "destination": "/apps/nano/index.html" },
+    { "source": "/apps/nano/:match*", "destination": "/apps/nano/index.html" },
+    { "source": "/apps/classic", "destination": "/apps/classic/index.html" },
+    { "source": "/apps/classic/:match*", "destination": "/apps/classic/index.html" },
+    { "source": "/apps/touch", "destination": "/apps/touch/index.html" },
+    { "source": "/apps/touch/:match*", "destination": "/apps/touch/index.html" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
   ]
 }
