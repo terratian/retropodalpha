@@ -31,6 +31,39 @@
     }
   }
 
+  function isThinMetadata(track) {
+    return !track.artUrl || track.artist === 'Unknown Artist' || !track.geniusChecked;
+  }
+
+  async function enrichTrackMetadata(i) {
+    const track = tracks[i];
+    if (!track || track.geniusChecked) return;
+
+    const query = track.artist && track.artist !== 'Unknown Artist'
+      ? `${track.title} ${track.artist}`
+      : track.title;
+
+    try {
+      const res = await fetch(`/api/metadata?q=${encodeURIComponent(query)}`);
+      const data = await res.json();
+
+      tracks[i] = {
+        ...track,
+        title: track.title || data.title,
+        artist: (track.artist === 'Unknown Artist' || !track.artist) ? data.artist : track.artist,
+        artUrl: track.artUrl || data.songArt || null,
+        geniusUrl: data.geniusUrl || null,
+        annotationSummary: data.annotationSummary || null,
+        geniusChecked: true
+      };
+      tracks = tracks;
+    } catch (e) {
+      console.warn('Metadata enrichment failed:', e);
+      tracks[i] = { ...track, geniusChecked: true };
+      tracks = tracks;
+    }
+  }
+
   function loadTrack(i) {
     currentIndex = i;
     audioElement.src = tracks[i].url;
@@ -38,6 +71,10 @@
     audioElement.play();
     isPlaying = true;
     playClickSound();
+
+    if (isThinMetadata(tracks[i])) {
+      enrichTrackMetadata(i);
+    }
   }
 
   function togglePlay() {
