@@ -12,25 +12,25 @@
   <p>Select an authentic media player device instance to mount standalone:</p>
 
   <div class="device-grid">
-    <div class="device-card" on:click={() => launchDevice('/apps/shuffle/index.html')}>
+    <div class="device-card" role="button" tabindex="0" on:click={() => launchDevice('/apps/shuffle/index.html')} on:keydown={(e) => e.key === 'Enter' && launchDevice('/apps/shuffle/index.html')}>
       <div class="device-icon shuffle-icon"></div>
       <h3>iPod shuffle</h3>
       <span>4th Gen Clip-on</span>
     </div>
 
-    <div class="device-card" on:click={() => launchDevice('/apps/nano/index.html')}>
+    <div class="device-card" role="button" tabindex="0" on:click={() => launchDevice('/apps/nano/index.html')} on:keydown={(e) => e.key === 'Enter' && launchDevice('/apps/nano/index.html')}>
       <div class="device-icon nano-icon"></div>
       <h3>iPod nano</h3>
       <span>3rd Gen Curved</span>
     </div>
 
-    <div class="device-card" on:click={() => launchDevice('/apps/classic/index.html')}>
+    <div class="device-card" role="button" tabindex="0" on:click={() => launchDevice('/apps/classic/index.html')} on:keydown={(e) => e.key === 'Enter' && launchDevice('/apps/classic/index.html')}>
       <div class="device-icon classic-icon"></div>
       <h3>iPod classic</h3>
       <span>5th Gen Click Wheel</span>
     </div>
 
-    <div class="device-card" on:click={() => launchDevice('/apps/touch/index.html')}>
+    <div class="device-card" role="button" tabindex="0" on:click={() => launchDevice('/apps/touch/index.html')} on:keydown={(e) => e.key === 'Enter' && launchDevice('/apps/touch/index.html')}>
       <div class="device-icon touch-icon"></div>
       <h3>iPod touch</h3>
       <span>iOS SpringBoard Glass</span>
