@@ -3,27 +3,24 @@
   import { playClickSound } from '@retropod/core/src/audioEngine.js';
 
   let currentTime = '';
-  let openWindows = {
-    classic: false,
-    touch: false,
-    visualizer: false
-  };
+  let openWindows = { classic: false, touch: false };
   let activeWindow = 'classic';
   
-  // Window positions & dragging state
   let windows = {
-    classic: { x: 80, y: 60, width: 400, height: 680 },
-    touch: { x: 520, y: 60, width: 380, height: 740 }
+    classic: { x: 80, y: 60, width: 400, height: 680, opening: false },
+    touch: { x: 520, y: 60, width: 380, height: 740, opening: false }
   };
   
   let dragging = null;
   let dragOffset = { x: 0, y: 0 };
+  let activeDropdown = null;
 
   onMount(() => {
     updateClock();
     setInterval(updateClock, 1000);
     window.addEventListener('mousemove', onMouseMove);
     window.addEventListener('mouseup', onMouseUp);
+    window.addEventListener('click', () => activeDropdown = null);
   });
 
   function updateClock() {
@@ -33,8 +30,14 @@
 
   function toggleWindow(appName) {
     playClickSound();
-    openWindows[appName] = !openWindows[appName];
-    if (openWindows[appName]) activeWindow = appName;
+    if (!openWindows[appName]) {
+      windows[appName].opening = true;
+      openWindows[appName] = true;
+      setTimeout(() => { windows[appName].opening = false; }, 350);
+    } else {
+      openWindows[appName] = false;
+    }
+    activeWindow = appName;
   }
 
   function closeWindow(appName) {
@@ -59,19 +62,79 @@
   function onMouseUp() {
     dragging = null;
   }
+
+  function toggleMenu(menuName, e) {
+    e.stopPropagation();
+    activeDropdown = activeDropdown === menuName ? null : menuName;
+  }
 </script>
 
 <div class="macos-desktop">
   <div class="menubar">
     <div class="menu-left">
       <span class="apple-logo"></span>
-      <span class="menu-item font-bold">RetroPod Finder</span>
-      <span class="menu-item">File</span>
-      <span class="menu-item">Edit</span>
-      <span class="menu-item">View</span>
-      <span class="menu-item">Window</span>
+      <div class="menu-dropdown-container">
+        <span class="menu-item font-bold" on:click={(e) => toggleMenu('finder', e)}>RetroPod Finder</span>
+        {#if activeDropdown === 'finder'}
+          <div class="dropdown-menu">
+            <div class="dropdown-item" on:click={() => toggleWindow('classic')}>About RetroPod Alpha</div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item">System Settings...</div>
+            <div class="dropdown-item">App Store...</div>
+          </div>
+        {/if}
+      </div>
+
+      <div class="menu-dropdown-container">
+        <span class="menu-item" on:click={(e) => toggleMenu('file', e)}>File</span>
+        {#if activeDropdown === 'file'}
+          <div class="dropdown-menu">
+            <div class="dropdown-item" on:click={() => toggleWindow('classic')}>New Classic Window</div>
+            <div class="dropdown-item" on:click={() => toggleWindow('touch')}>New Touch Window</div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item" on:click={() => window.location.reload()}>Close All Windows</div>
+          </div>
+        {/if}
+      </div>
+
+      <div class="menu-dropdown-container">
+        <span class="menu-item" on:click={(e) => toggleMenu('edit', e)}>Edit</span>
+        {#if activeDropdown === 'edit'}
+          <div class="dropdown-menu">
+            <div class="dropdown-item">Undo</div>
+            <div class="dropdown-item">Redo</div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item">Cut / Copy / Paste</div>
+          </div>
+        {/if}
+      </div>
+
+      <div class="menu-dropdown-container">
+        <span class="menu-item" on:click={(e) => toggleMenu('view', e)}>View</span>
+        {#if activeDropdown === 'view'}
+          <div class="dropdown-menu">
+            <div class="dropdown-item">as Icons</div>
+            <div class="dropdown-item">as List</div>
+            <div class="dropdown-item">as Columns</div>
+          </div>
+        {/if}
+      </div>
+
+      <div class="menu-dropdown-container">
+        <span class="menu-item" on:click={(e) => toggleMenu('window', e)}>Window</span>
+        {#if activeDropdown === 'window'}
+          <div class="dropdown-menu">
+            <div class="dropdown-item" on:click={() => { openWindows.classic = true; activeWindow = 'classic'; }}>Bring Classic to Front</div>
+            <div class="dropdown-item" on:click={() => { openWindows.touch = true; activeWindow = 'touch'; }}>Bring Touch to Front</div>
+            <div class="dropdown-divider"></div>
+            <div class="dropdown-item">Minimize All</div>
+          </div>
+        {/if}
+      </div>
+
       <span class="menu-item">Help</span>
     </div>
+
     <div class="menu-right">
       <span class="status-icon">🔋 100%</span>
       <span class="status-icon">Wi-Fi</span>
@@ -92,14 +155,14 @@
     </div>
 
     {#if openWindows.classic}
-      <div class="mac-window {activeWindow === 'classic' ? 'active-win' : ''}" 
+      <div class="mac-window {activeWindow === 'classic' ? 'active-win' : ''} {windows.classic.opening ? 'genie-open' : ''}" 
            style="top: {windows.classic.y}px; left: {windows.classic.x}px; width: {windows.classic.width}px; height: {windows.classic.height}px;" 
            on:mousedown={() => activeWindow = 'classic'}>
         <div class="window-header" on:mousedown={(e) => startDrag('classic', e)}>
           <div class="traffic-lights">
             <span class="close" role="button" tabindex="0" on:click={() => closeWindow('classic')} on:keydown={(e) => e.key === 'Enter' && closeWindow('classic')}></span>
-            <span class="minimize"></span>
-            <span class="maximize"></span>
+            <span class="minimize" on:click={() => closeWindow('classic')}></span>
+            <span class="maximize" on:click={() => windows.classic.width = windows.classic.width === 400 ? 600 : 400}></span>
           </div>
           <span class="window-title">RetroPod Classic — 5th Gen Click Wheel</span>
         </div>
@@ -110,14 +173,14 @@
     {/if}
 
     {#if openWindows.touch}
-      <div class="mac-window {activeWindow === 'touch' ? 'active-win' : ''}" 
+      <div class="mac-window {activeWindow === 'touch' ? 'active-win' : ''} {windows.touch.opening ? 'genie-open' : ''}" 
            style="top: {windows.touch.y}px; left: {windows.touch.x}px; width: {windows.touch.width}px; height: {windows.touch.height}px;" 
            on:mousedown={() => activeWindow = 'touch'}>
         <div class="window-header" on:mousedown={(e) => startDrag('touch', e)}>
           <div class="traffic-lights">
             <span class="close" role="button" tabindex="0" on:click={() => closeWindow('touch')} on:keydown={(e) => e.key === 'Enter' && closeWindow('touch')}></span>
-            <span class="minimize"></span>
-            <span class="maximize"></span>
+            <span class="minimize" on:click={() => closeWindow('touch')}></span>
+            <span class="maximize" on:click={() => windows.touch.width = windows.touch.width === 380 ? 500 : 380}></span>
           </div>
           <span class="window-title">RetroPod Touch — iOS SpringBoard</span>
         </div>
@@ -148,9 +211,14 @@
   .menubar { height: 28px; background: rgba(30, 30, 30, 0.45); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.15); display: flex; justify-content: space-between; align-items: center; padding: 0 16px; font-size: 13px; color: #f3f3f3; z-index: 1000; }
   .menu-left, .menu-right { display: flex; align-items: center; gap: 16px; }
   .apple-logo { font-size: 15px; font-weight: bold; }
-  .menu-item { cursor: pointer; opacity: 0.85; transition: opacity 0.2s; }
-  .menu-item:hover { opacity: 1; }
+  .menu-dropdown-container { position: relative; }
+  .menu-item { cursor: pointer; opacity: 0.85; transition: opacity 0.2s; padding: 2px 6px; border-radius: 4px; }
+  .menu-item:hover { opacity: 1; background: rgba(255, 255, 255, 0.15); }
   .font-bold { font-weight: 600; opacity: 1; }
+  .dropdown-menu { position: absolute; top: 26px; left: 0; width: 200px; background: rgba(40, 40, 40, 0.85); backdrop-filter: blur(30px); border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 8px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); padding: 6px; z-index: 2000; display: flex; flex-direction: column; gap: 2px; }
+  .dropdown-item { padding: 6px 10px; font-size: 12px; border-radius: 4px; color: #f3f3f3; cursor: pointer; }
+  .dropdown-item:hover { background: #0060df; color: #fff; }
+  .dropdown-divider { height: 1px; background: rgba(255, 255, 255, 0.15); margin: 4px 0; }
   .status-icon, .clock { font-size: 12px; opacity: 0.9; }
   .desktop-area { flex: 1; position: relative; padding: 20px; overflow: hidden; }
   .desktop-icons { display: flex; flex-direction: column; gap: 20px; align-items: flex-start; }
@@ -158,7 +226,12 @@
   .desktop-icon:hover { background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(10px); }
   .icon-box { font-size: 36px; margin-bottom: 4px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
   .desktop-icon span { font-size: 11px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); line-height: 1.2; }
-  .mac-window { position: absolute; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(40px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; z-index: 10; }
+  .mac-window { position: absolute; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(40px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; z-index: 10; transform-origin: bottom center; }
+  .genie-open { animation: genieOpen 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+  @keyframes genieOpen {
+    0% { transform: scale(0.1) translateY(400px); opacity: 0; }
+    100% { transform: scale(1) translateY(0); opacity: 1; }
+  }
   .active-win { z-index: 50; box-shadow: 0 40px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.25); }
   .window-header { height: 36px; background: rgba(45, 45, 45, 0.6); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; padding: 0 12px; position: relative; cursor: grab; }
   .window-header:active { cursor: grabbing; }
