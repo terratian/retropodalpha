@@ -152,7 +152,10 @@
         <span>RetroPod Classic.app</span>
       </div>
       <div class="desktop-icon" role="button" tabindex="0" on:dblclick={() => toggleWindow('touch')} on:keydown={(e) => e.key === 'Enter' && toggleWindow('touch')}>
-        <div class="icon-box ios-device-icon">📱</div>
+        <div class="icon-box ios-device-icon">
+          <div class="mini-ios-screen"></div>
+          <div class="mini-home-bar"></div>
+        </div>
         <span>RetroPod Touch.app</span>
       </div>
     </div>
@@ -204,7 +207,9 @@
         {#if openWindows.classic}<div class="dot"></div>{/if}
       </div>
       <div class="dock-item" role="button" tabindex="0" title="RetroPod Touch" on:click={() => toggleWindow('touch')} on:keydown={(e) => e.key === 'Enter' && toggleWindow('touch')}>
-        <span>📱</span>
+        <div class="dock-iphone-icon">
+          <div class="dock-mini-ios-screen"></div>
+        </div>
         {#if openWindows.touch}<div class="dot"></div>{/if}
       </div>
     </div>
@@ -231,11 +236,15 @@
   .desktop-icon { width: 80px; display: flex; flex-direction: column; align-items: center; text-align: center; cursor: pointer; padding: 8px; border-radius: 8px; transition: background 0.2s; }
   .desktop-icon:hover { background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(10px); }
   
-  .icon-box { width: 52px; height: 64px; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; padding-top: 6px; margin-bottom: 4px; box-shadow: 0 6px 15px rgba(0,0,0,0.4); }
-  .ipod-classic-icon { background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); border: 1px solid #cbd5e1; position: relative; }
-  .mini-screen { width: 38px; height: 24px; background: #f8fafc; border: 1px solid #334155; border-radius: 3px; margin-bottom: 6px; }
-  .mini-wheel { width: 28px; height: 28px; background: #f1f5f9; border-radius: 50%; border: 1px solid #cbd5e1; }
+  .icon-box { width: 52px; height: 68px; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 5px 0; margin-bottom: 4px; box-shadow: 0 6px 15px rgba(0,0,0,0.4); box-sizing: border-box; }
+  .ipod-classic-icon { background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); border: 1px solid #cbd5e1; justify-content: flex-start; padding-top: 6px; }
+  .mini-screen { width: 38px; height: 22px; background: #f8fafc; border: 1px solid #334155; border-radius: 3px; margin-bottom: 6px; }
+  .mini-wheel { width: 26px; height: 26px; background: #f1f5f9; border-radius: 50%; border: 1px solid #cbd5e1; }
   
+  .ios-device-icon { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border: 1px solid #334155; }
+  .mini-ios-screen { width: 40px; height: 50px; background: linear-gradient(135deg, #31103f 0%, #1e1b4b 100%); border-radius: 6px; border: 1px solid rgba(255,255,255,0.2); }
+  .mini-home-bar { width: 16px; height: 2px; background: rgba(255,255,255,0.6); border-radius: 1px; }
+
   .desktop-icon span { font-size: 11px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); line-height: 1.2; }
   .mac-window { position: absolute; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(40px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; z-index: 10; transform-origin: bottom center; }
   .genie-open { animation: genieOpen 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
@@ -261,5 +270,7 @@
   .dock-ipod-icon { width: 32px; height: 40px; background: linear-gradient(135deg, #e2e8f0 0%, #94a3b8 100%); border-radius: 6px; display: flex; flex-direction: column; align-items: center; padding-top: 4px; border: 1px solid #cbd5e1; }
   .dock-mini-screen { width: 24px; height: 15px; background: #f8fafc; border: 1px solid #334155; border-radius: 2px; margin-bottom: 4px; }
   .dock-mini-wheel { width: 18px; height: 18px; background: #f1f5f9; border-radius: 50%; border: 1px solid #cbd5e1; }
+  .dock-iphone-icon { width: 28px; height: 40px; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 6px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid #334155; }
+  .dock-mini-ios-screen { width: 22px; height: 32px; background: linear-gradient(135deg, #31103f 0%, #1e1b4b 100%); border-radius: 4px; border: 1px solid rgba(255,255,255,0.2); }
   .dot { width: 4px; height: 4px; background: #fff; border-radius: 50%; position: absolute; bottom: 3px; }
 </style>
