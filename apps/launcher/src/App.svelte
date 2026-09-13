@@ -8,11 +8,22 @@
     touch: false,
     visualizer: false
   };
-  let activeWindow = null;
+  let activeWindow = 'classic';
+  
+  // Window positions & dragging state
+  let windows = {
+    classic: { x: 80, y: 60, width: 400, height: 680 },
+    touch: { x: 520, y: 60, width: 380, height: 740 }
+  };
+  
+  let dragging = null;
+  let dragOffset = { x: 0, y: 0 };
 
   onMount(() => {
     updateClock();
     setInterval(updateClock, 1000);
+    window.addEventListener('mousemove', onMouseMove);
+    window.addEventListener('mouseup', onMouseUp);
   });
 
   function updateClock() {
@@ -30,10 +41,27 @@
     playClickSound();
     openWindows[appName] = false;
   }
+
+  function startDrag(appName, e) {
+    if (e.target.closest('.traffic-lights')) return;
+    dragging = appName;
+    activeWindow = appName;
+    const rect = windows[appName];
+    dragOffset = { x: e.clientX - rect.x, y: e.clientY - rect.y };
+  }
+
+  function onMouseMove(e) {
+    if (!dragging) return;
+    windows[dragging].x = Math.max(0, Math.min(window.innerWidth - 100, e.clientX - dragOffset.x));
+    windows[dragging].y = Math.max(28, Math.min(window.innerHeight - 100, e.clientY - dragOffset.y));
+  }
+
+  function onMouseUp() {
+    dragging = null;
+  }
 </script>
 
 <div class="macos-desktop">
-  <!-- Top Menu Bar -->
   <div class="menubar">
     <div class="menu-left">
       <span class="apple-logo"></span>
@@ -51,9 +79,7 @@
     </div>
   </div>
 
-  <!-- Desktop Workspace Area -->
-  <div class="desktop-area" on:click={() => activeWindow = null}>
-    <!-- Desktop Icons -->
+  <div class="desktop-area">
     <div class="desktop-icons">
       <div class="desktop-icon" role="button" tabindex="0" on:dblclick={() => toggleWindow('classic')} on:keydown={(e) => e.key === 'Enter' && toggleWindow('classic')}>
         <div class="icon-box">🎛️</div>
@@ -63,16 +89,13 @@
         <div class="icon-box">📱</div>
         <span>RetroPod Touch.app</span>
       </div>
-      <div class="desktop-icon" role="button" tabindex="0" on:dblclick={() => toggleWindow('visualizer')} on:keydown={(e) => e.key === 'Enter' && toggleWindow('visualizer')}>
-        <div class="icon-box">✨</div>
-        <span>Nebula Visualizer.app</span>
-      </div>
     </div>
 
-    <!-- RetroPod Classic Window -->
     {#if openWindows.classic}
-      <div class="mac-window {activeWindow === 'classic' ? 'active-win' : ''}" style="top: 80px; left: 100px; width: 420px; height: 680px;" on:mousedown={() => activeWindow = 'classic'}>
-        <div class="window-header">
+      <div class="mac-window {activeWindow === 'classic' ? 'active-win' : ''}" 
+           style="top: {windows.classic.y}px; left: {windows.classic.x}px; width: {windows.classic.width}px; height: {windows.classic.height}px;" 
+           on:mousedown={() => activeWindow = 'classic'}>
+        <div class="window-header" on:mousedown={(e) => startDrag('classic', e)}>
           <div class="traffic-lights">
             <span class="close" role="button" tabindex="0" on:click={() => closeWindow('classic')} on:keydown={(e) => e.key === 'Enter' && closeWindow('classic')}></span>
             <span class="minimize"></span>
@@ -86,10 +109,11 @@
       </div>
     {/if}
 
-    <!-- RetroPod Touch Window -->
     {#if openWindows.touch}
-      <div class="mac-window {activeWindow === 'touch' ? 'active-win' : ''}" style="top: 60px; left: 560px; width: 380px; height: 740px;" on:mousedown={() => activeWindow = 'touch'}>
-        <div class="window-header">
+      <div class="mac-window {activeWindow === 'touch' ? 'active-win' : ''}" 
+           style="top: {windows.touch.y}px; left: {windows.touch.x}px; width: {windows.touch.width}px; height: {windows.touch.height}px;" 
+           on:mousedown={() => activeWindow = 'touch'}>
+        <div class="window-header" on:mousedown={(e) => startDrag('touch', e)}>
           <div class="traffic-lights">
             <span class="close" role="button" tabindex="0" on:click={() => closeWindow('touch')} on:keydown={(e) => e.key === 'Enter' && closeWindow('touch')}></span>
             <span class="minimize"></span>
@@ -104,7 +128,6 @@
     {/if}
   </div>
 
-  <!-- macOS Dock -->
   <div class="dock-container">
     <div class="dock">
       <div class="dock-item" role="button" tabindex="0" title="RetroPod Classic" on:click={() => toggleWindow('classic')} on:keydown={(e) => e.key === 'Enter' && toggleWindow('classic')}>
@@ -115,16 +138,12 @@
         <span>📱</span>
         {#if openWindows.touch}<div class="dot"></div>{/if}
       </div>
-      <div class="dock-separator"></div>
-      <div class="dock-item" role="button" tabindex="0" title="Finder / Files" on:click={() => alert('Use individual apps to mount directory handles.')} on:keydown={(e) => e.key === 'Enter' && alert('Use individual apps to mount directory handles.')}>
-        <span>📁</span>
-      </div>
     </div>
   </div>
 </div>
 
 <style>
-  :global(body) { margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif; background: #000; user-select: none; }
+  :global(body) { margin: 0; padding: 0; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; background: #000; user-select: none; }
   .macos-desktop { width: 100vw; height: 100vh; background: url('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2560&auto=format&fit=crop') center/cover no-repeat; display: flex; flex-direction: column; position: relative; }
   .menubar { height: 28px; background: rgba(30, 30, 30, 0.45); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(255, 255, 255, 0.15); display: flex; justify-content: space-between; align-items: center; padding: 0 16px; font-size: 13px; color: #f3f3f3; z-index: 1000; }
   .menu-left, .menu-right { display: flex; align-items: center; gap: 16px; }
@@ -139,9 +158,10 @@
   .desktop-icon:hover { background: rgba(255, 255, 255, 0.12); backdrop-filter: blur(10px); }
   .icon-box { font-size: 36px; margin-bottom: 4px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); }
   .desktop-icon span { font-size: 11px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,0.8); line-height: 1.2; }
-  .mac-window { position: absolute; background: rgba(22, 22, 22, 0.75); backdrop-filter: blur(40px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; z-index: 10; transition: box-shadow 0.2s; }
+  .mac-window { position: absolute; background: rgba(22, 22, 22, 0.85); backdrop-filter: blur(40px); border-radius: 12px; border: 1px solid rgba(255, 255, 255, 0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.6); display: flex; flex-direction: column; overflow: hidden; z-index: 10; }
   .active-win { z-index: 50; box-shadow: 0 40px 80px rgba(0,0,0,0.8), 0 0 0 1px rgba(255,255,255,0.25); }
-  .window-header { height: 36px; background: rgba(45, 45, 45, 0.5); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; padding: 0 12px; position: relative; }
+  .window-header { height: 36px; background: rgba(45, 45, 45, 0.6); border-bottom: 1px solid rgba(255, 255, 255, 0.1); display: flex; align-items: center; padding: 0 12px; position: relative; cursor: grab; }
+  .window-header:active { cursor: grabbing; }
   .traffic-lights { display: flex; gap: 8px; }
   .traffic-lights span { width: 12px; height: 12px; border-radius: 50%; display: inline-block; cursor: pointer; }
   .close { background: #ff5f56; border: 1px solid #e0443e; }
@@ -155,5 +175,4 @@
   .dock-item { width: 48px; height: 48px; background: rgba(255, 255, 255, 0.2); border-radius: 12px; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 26px; cursor: pointer; transition: transform 0.2s; position: relative; }
   .dock-item:hover { transform: scale(1.25) translateY(-6px); }
   .dot { width: 4px; height: 4px; background: #fff; border-radius: 50%; position: absolute; bottom: 3px; }
-  .dock-separator { width: 1px; height: 32px; background: rgba(255, 255, 255, 0.25); margin: 0 4px; }
 </style>
