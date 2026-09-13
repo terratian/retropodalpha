@@ -1,0 +1,9 @@
+{
+  "name": "@retropod/classic",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@retropod/core": "*",
+    "@retropod/visualizers": "*"
+  }
+}

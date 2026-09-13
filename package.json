@@ -1,0 +1,12 @@
+{
+  "name": "retropod-alpha",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build:classic": "npm --workspace=apps/classic run build",
+    "build:touch": "npm --workspace=apps/touch run build"
+  }
+}

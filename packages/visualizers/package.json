@@ -1,0 +1,9 @@
+{
+  "name": "@retropod/visualizers",
+  "version": "0.1.0",
+  "private": true,
+  "main": "src/NebulaVisualizer.svelte",
+  "peerDependencies": {
+    "svelte": "^4.0.0"
+  }
+}
